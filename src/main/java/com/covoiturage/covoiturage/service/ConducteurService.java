@@ -7,13 +7,13 @@ import java.util.List;
 
 public interface ConducteurService {
 
-    ConducteurResponse creer(ConducteurRequest request);
+    ConducteurResponse save(ConducteurRequest request);
 
-    ConducteurResponse trouverParId(Long id);
+    ConducteurResponse getById(Long id);
 
-    List<ConducteurResponse> lister();
+    List<ConducteurResponse> getList();
 
-    ConducteurResponse modifier(Long id, ConducteurRequest request);
+    ConducteurResponse modifierConducteur(Long id, ConducteurRequest request);
 
-    List<ConducteurResponse> rechercher(String critere);
+    List<ConducteurResponse> searchByNameOrEmail(String critere);
 }

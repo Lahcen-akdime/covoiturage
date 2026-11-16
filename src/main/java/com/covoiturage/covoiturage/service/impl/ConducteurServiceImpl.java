@@ -1,7 +1,11 @@
 package com.covoiturage.covoiturage.service.impl;
 
 import com.covoiturage.covoiturage.dto.conducteur.ConducteurRequest;
+import com.covoiturage.covoiturage.dto.conducteur.ConducteurResponse;
+import com.covoiturage.covoiturage.exception.BusinessRuleException;
+import com.covoiturage.covoiturage.exception.ResourceNotFoundException;
 import com.covoiturage.covoiturage.mapper.ConducteurMapper;
+import com.covoiturage.covoiturage.model.Conducteur;
 import com.covoiturage.covoiturage.repository.ConducteurRepository;
 import com.covoiturage.covoiturage.service.ConducteurService;
 import lombok.RequiredArgsConstructor;
@@ -23,34 +27,29 @@ public class ConducteurServiceImpl implements ConducteurService {
 
     @Override
     @Transactional
-    public ConducteurResponse creer(ConducteurRequest request) {
+    public ConducteurResponse save(ConducteurRequest request) {
         String email = normaliserEmail(request.email());
         String numeroPermis = request.numeroPermis().trim();
 
         if (conducteurRepository.existsByEmailIgnoreCase(email)) {
-            throw new BusinessRuleException("Un conducteur avec l'email " + email + " existe déjà.");
+            throw new BusinessRuleException("Un conducteur avec l'email " + email + " existe deja");
         }
         if (conducteurRepository.existsByNumeroPermis(numeroPermis)) {
             throw new BusinessRuleException("Un conducteur avec le numéro de permis "
-                    + numeroPermis + " existe déjà.");
+                    + numeroPermis + " existe deja ");
         }
 
         Conducteur conducteur = conducteurMapper.toEntity(request);
         conducteur.setEmail(email);
         conducteur.setNumeroPermis(numeroPermis);
 
-        Conducteur sauvegarde = conducteurRepository.save(conducteur);
-        log.info("Conducteur créé : id={}", sauvegarde.getId());
-        return conducteurMapper.toResponse(sauvegarde);
+        Conducteur newConducteur = conducteurRepository.save(conducteur);
+        log.info("Conducteur cree : id={}", newConducteur.getId());
+        return conducteurMapper.toResponse(newConducteur);
     }
 
     @Override
-    public ConducteurResponse trouverParId(Long id) {
-        return conducteurMapper.toResponse(chercher(id));
-    }
-
-    @Override
-    public List<ConducteurResponse> lister() {
+    public List<ConducteurResponse> getList() {
         return conducteurRepository.findAll().stream()
                 .map(conducteurMapper::toResponse)
                 .toList();
@@ -58,8 +57,8 @@ public class ConducteurServiceImpl implements ConducteurService {
 
     @Override
     @Transactional
-    public ConducteurResponse modifier(Long id, ConducteurRequest request) {
-        Conducteur conducteur = chercher(id);
+    public ConducteurResponse modifierConducteur(Long id, ConducteurRequest request) {
+        Conducteur conducteur = findById(id);
         String email = normaliserEmail(request.email());
         String numeroPermis = request.numeroPermis().trim();
 
@@ -75,23 +74,30 @@ public class ConducteurServiceImpl implements ConducteurService {
         conducteur.setEmail(email);
         conducteur.setNumeroPermis(numeroPermis);
 
-        Conducteur sauvegarde = conducteurRepository.save(conducteur);
-        log.info("Conducteur modifié : id={}", sauvegarde.getId());
-        return conducteurMapper.toResponse(sauvegarde);
+        Conducteur modified = conducteurRepository.save(conducteur);
+        log.info("Conducteur modifié : id={}", modified.getId());
+        return conducteurMapper.toResponse(modified);
     }
 
     @Override
-    public List<ConducteurResponse> rechercher(String critere) {
+    public List<ConducteurResponse> searchByNameOrEmail(String critere) {
         return conducteurRepository.rechercherParNomOuEmail(critere.trim()).stream()
                 .map(conducteurMapper::toResponse)
                 .toList();
     }
 
-    private Conducteur chercher(Long id) {
+    @Override
+    public ConducteurResponse getById(Long id){
+        return conducteurMapper.toResponse(findById(id)) ;
+    }
+
+
+    public Conducteur findById(Long id) {
         return conducteurRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Conducteur introuvable avec l'identifiant " + id));
     }
+
 
     private String normaliserEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);

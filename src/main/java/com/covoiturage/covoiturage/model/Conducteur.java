@@ -1,4 +1,4 @@
-package ma.youcode.covoiturage.entity;
+package com.covoiturage.covoiturage.model;
 
 import com.covoiturage.covoiturage.model.Personne;
 import jakarta.persistence.Column;

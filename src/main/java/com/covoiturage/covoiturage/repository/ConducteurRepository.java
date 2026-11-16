@@ -1,6 +1,6 @@
 package com.covoiturage.covoiturage.repository;
 
-import ma.youcode.covoiturage.entity.Conducteur;
+import com.covoiturage.covoiturage.model.Conducteur;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,17 +11,17 @@ public interface ConducteurRepository extends JpaRepository<Conducteur, Long> {
 
     boolean existsByEmailIgnoreCase(String email);
 
-    //boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
 
     boolean existsByNumeroPermis(String numeroPermis);
 
-    //boolean existsByNumeroPermisAndIdNot(String numeroPermis, Long id);
+    boolean existsByNumeroPermisAndIdNot(String numeroPermis, Long id);
 
-    /*@Query("""
+    @Query("""
             select c from Conducteur c
             where lower(c.nom) like lower(concat('%', :critere, '%'))
                or lower(c.email) like lower(concat('%', :critere, '%'))
             order by c.nom, c.prenom
             """)
-    List<Conducteur> rechercherParNomOuEmail(@Param("critere") String critere);*/
+    List<Conducteur> rechercherParNomOuEmail(@Param("critere") String critere);
 }

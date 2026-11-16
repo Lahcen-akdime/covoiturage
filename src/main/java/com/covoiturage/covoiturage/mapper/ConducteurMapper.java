@@ -2,7 +2,7 @@ package com.covoiturage.covoiturage.mapper;
 
 import com.covoiturage.covoiturage.dto.conducteur.ConducteurRequest;
 import com.covoiturage.covoiturage.dto.conducteur.ConducteurResponse;
-import ma.youcode.covoiturage.entity.Conducteur;
+import com.covoiturage.covoiturage.model.Conducteur;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
