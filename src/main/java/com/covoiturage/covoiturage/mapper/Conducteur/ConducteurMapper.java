@@ -1,4 +1,4 @@
-package com.covoiturage.covoiturage.mapper;
+package com.covoiturage.covoiturage.mapper.Conducteur;
 
 import com.covoiturage.covoiturage.dto.conducteur.ConducteurRequest;
 import com.covoiturage.covoiturage.dto.conducteur.ConducteurResponse;

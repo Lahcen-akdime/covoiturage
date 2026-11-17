@@ -28,4 +28,7 @@ public abstract class Personne {
 
     @Column(nullable = false, length = 20)
     private String telephone;
+
+    @Column(nullable = false,length = 100)
+    protected String password ;
 }

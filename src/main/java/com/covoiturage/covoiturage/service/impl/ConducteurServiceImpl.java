@@ -4,7 +4,7 @@ import com.covoiturage.covoiturage.dto.conducteur.ConducteurRequest;
 import com.covoiturage.covoiturage.dto.conducteur.ConducteurResponse;
 import com.covoiturage.covoiturage.exception.BusinessRuleException;
 import com.covoiturage.covoiturage.exception.ResourceNotFoundException;
-import com.covoiturage.covoiturage.mapper.ConducteurMapper;
+import com.covoiturage.covoiturage.mapper.Conducteur.ConducteurMapper;
 import com.covoiturage.covoiturage.model.Conducteur;
 import com.covoiturage.covoiturage.repository.ConducteurRepository;
 import com.covoiturage.covoiturage.service.ConducteurService;

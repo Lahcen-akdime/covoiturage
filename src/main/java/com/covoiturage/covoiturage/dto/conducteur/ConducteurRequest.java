@@ -19,6 +19,11 @@ public record ConducteurRequest(
         @Size(max = 150, message = "L'email ne doit pas dépasser 150 caractères")
         String email,
 
+
+        @Size(max=30,min = 6,message = "le password doit contient 6-30 mot")
+        @NotBlank(message = "Le password est obligatoire")
+        String password ,
+
         @NotBlank(message = "Le téléphone est obligatoire")
         @Pattern(regexp = "^\\+?[0-9]{8,15}$",
                 message = "Le téléphone doit contenir de 8 à 15 chiffres (+ autorisé au début)")
