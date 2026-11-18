@@ -1,6 +1,8 @@
 package com.covoiturage.covoiturage.advice;
 
 import com.covoiturage.covoiturage.exception.BusinessRuleException;
+import com.covoiturage.covoiturage.exception.ForbiddenOperationException;
+import com.covoiturage.covoiturage.exception.InvalidRequestException;
 import com.covoiturage.covoiturage.exception.ResourceNotFoundException;
 import com.covoiturage.covoiturage.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
@@ -80,6 +82,20 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request){
         HttpStatus status = HttpStatus.NOT_FOUND ;
+        return ResponseEntity.status(status).body(buildTheError(ex,status.value(),request)) ;
+    }
+
+    @ExceptionHandler(ForbiddenOperationException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<ErrorResponse> handleForbiddenOperationException(ForbiddenOperationException ex, WebRequest request){
+        HttpStatus status = HttpStatus.FORBIDDEN ;
+        return ResponseEntity.status(status).body(buildTheError(ex,status.value(),request)) ;
+    }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleInvalidRequestException(InvalidRequestException ex, WebRequest request){
+        HttpStatus status = HttpStatus.BAD_REQUEST ;
         return ResponseEntity.status(status).body(buildTheError(ex,status.value(),request)) ;
     }
 

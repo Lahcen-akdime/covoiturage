@@ -1,0 +1,153 @@
+package com.covoiturage.covoiturage.service.impl;
+
+import com.covoiturage.covoiturage.dto.Trajet.PublierTrajetRequest;
+import com.covoiturage.covoiturage.dto.Trajet.TrajetDetailResponse;
+import com.covoiturage.covoiturage.dto.pointArret.PointArretRequest;
+import com.covoiturage.covoiturage.exception.ForbiddenOperationException;
+import com.covoiturage.covoiturage.exception.InvalidRequestException;
+import com.covoiturage.covoiturage.exception.ResourceNotFoundException;
+import com.covoiturage.covoiturage.mapper.Trajet.TrajetMapper;
+import com.covoiturage.covoiturage.model.Conducteur;
+import com.covoiturage.covoiturage.model.Enum.StatutTrajet;
+import com.covoiturage.covoiturage.model.PointArret;
+import com.covoiturage.covoiturage.model.Trajet;
+import com.covoiturage.covoiturage.model.Vehicule;
+import com.covoiturage.covoiturage.repository.ConducteurRepository;
+import com.covoiturage.covoiturage.repository.TrajetRepository;
+import com.covoiturage.covoiturage.repository.VehiculeRepository;
+import com.covoiturage.covoiturage.service.TrajetService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.IntStream;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class TrajetServiceImpl implements TrajetService {
+
+    private final TrajetRepository trajetRepository;
+    private final ConducteurRepository conducteurRepository;
+    private final VehiculeRepository vehiculeRepository;
+    private final TrajetMapper trajetMapper;
+    private final Clock clock;
+
+    @Override
+    @Transactional
+    public TrajetDetailResponse publier(Long conducteurId, PublierTrajetRequest request) {
+        Conducteur conducteur = conducteurRepository.findById(conducteurId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Conducteur introuvable avec l'identifiant " + conducteurId));
+        Vehicule vehicule = vehiculeRepository.findById(request.vehiculeId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Véhicule introuvable avec l'identifiant " + request.vehiculeId()));
+
+        if (!vehicule.getConducteur().getId().equals(conducteurId)) {
+            throw new ForbiddenOperationException("Ce véhicule n'appartient pas au conducteur "
+                    + conducteurId + " : il ne peut pas l'utiliser pour publier un trajet.");
+        }
+
+        verifierPlaces(request.placesProposees(), vehicule);
+        verifierDateDepart(request.dateDepart());
+        List<PointArretRequest> points = request.pointsArret();
+        verifierLeChemin(points, request.dateDepart());
+
+        Trajet trajet = new Trajet();
+        trajet.setConducteur(conducteur);
+        trajet.setVehicule(vehicule);
+        trajet.setDateDepart(request.dateDepart());
+        trajet.setPlacesProposees(request.placesProposees());
+        trajet.setStatut(StatutTrajet.PUBLIE);
+        trajet.setVilleDepart(points.get(0).ville().trim());
+        trajet.setVilleArrivee(points.get(points.size() - 1).ville().trim());
+
+        for (int i = 0; i < points.size() ; i++) {
+            trajet.ajouterPointArret(buildPoint(points.get(i),i));
+        };
+
+        Trajet sauvegarde = trajetRepository.save(trajet);
+        log.info("Trajet publié : id={}, conducteurId={}, points={}",
+                sauvegarde.getId(), conducteurId, points.size());
+        return trajetMapper.toDetail(sauvegarde, calculerPlacesRestantes(sauvegarde));
+    }
+
+    @Override
+    public TrajetDetailResponse consulterDetail(Long id) {
+        Trajet trajet = trajetRepository.findDetailById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Trajet introuvable avec l'identifiant " + id));
+        return trajetMapper.toDetail(trajet, calculerPlacesRestantes(trajet));
+    }
+
+    private void verifierPlaces(int placesProposees, Vehicule vehicule) {
+        if (placesProposees > vehicule.getCapacite()) {
+            throw new InvalidRequestException("Vous proposez " + placesProposees
+                    + " places, mais ce vehicule a une capacite de " + vehicule.getCapacite()
+                    + " : " + vehicule.getCapacite() + " places au maximum");
+        }
+    }
+
+    private void verifierDateDepart(LocalDateTime dateDepart) {
+        if (!dateDepart.isAfter(LocalDateTime.now(clock))) {
+            throw new InvalidRequestException("La date de depart doit etre dans apres aujourd'hui");
+        }
+    }
+
+    public void verifierLeChemin(List<PointArretRequest> points , LocalDateTime dateDpart){
+        // Recupere le depar of voyage
+        PointArretRequest depart = points.get(0) ;
+
+        // Verifier si le depart = la premier point
+        if(!depart.heurePassage().equals(dateDpart.toLocalTime())){
+            throw new InvalidRequestException("Le temp de demmarage doit etre egal au temp de premier point"+
+                    "car le deparet est : "+dateDpart.toLocalTime()+" et l'heure de peremir point est "+depart.heurePassage()) ;
+        }
+
+        // Verifier si le prix commence par zero au debut
+        if(depart.prixDepuisDepart().compareTo(BigDecimal.ZERO) != 0){
+            throw new InvalidRequestException("Le prix doit etre 0 en premier point") ;
+        }
+
+        // loop to check all points process +
+        for (int i = 0; i < points.size()-1; i++) {
+            if(points.get(i+1).heurePassage().isBefore(points.get(i).heurePassage())){
+                throw new InvalidRequestException("L'heure "+points.get(i+1)+" et avant l'heure "+points.get(i));
+            }
+        }
+
+        // handle duplicates villes
+        Set<String> villes = new HashSet<>();
+        points.forEach(p -> {
+            if (!villes.add(p.ville().trim().toLowerCase(Locale.ROOT))) {
+                throw new InvalidRequestException("La ville " + p.ville().trim()
+                        + " apparaît plusieurs fois sur le parcours.");
+            }
+        });
+
+    }
+
+    private PointArret buildPoint(PointArretRequest source, int ordre) {
+        PointArret point = PointArret.builder()
+        .ville(source.ville().trim())
+        .ordre(ordre)
+        .heurePassage(source.heurePassage())
+        .prixDepuisDepart(source.prixDepuisDepart().setScale(2, RoundingMode.HALF_UP))
+        .build() ;
+        return point;
+    }
+
+    private int calculerPlacesRestantes(Trajet trajet) {
+        return trajet.getPlacesProposees();
+    }
+}

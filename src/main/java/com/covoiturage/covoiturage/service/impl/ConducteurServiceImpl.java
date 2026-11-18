@@ -10,6 +10,7 @@ import com.covoiturage.covoiturage.repository.ConducteurRepository;
 import com.covoiturage.covoiturage.service.ConducteurService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class ConducteurServiceImpl implements ConducteurService {
 
     private final ConducteurRepository conducteurRepository;
     private final ConducteurMapper conducteurMapper;
+    private final PasswordEncoder passwordEncoder ;
 
     @Override
     @Transactional
@@ -42,6 +44,7 @@ public class ConducteurServiceImpl implements ConducteurService {
         Conducteur conducteur = conducteurMapper.toEntity(request);
         conducteur.setEmail(email);
         conducteur.setNumeroPermis(numeroPermis);
+        conducteur.setPassword(passwordEncoder.encode(request.password()));
 
         Conducteur newConducteur = conducteurRepository.save(conducteur);
         log.info("Conducteur cree : id={}", newConducteur.getId());

@@ -10,6 +10,7 @@ import com.covoiturage.covoiturage.repository.PassagerRepository;
 import com.covoiturage.covoiturage.service.PassagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class PassagerServiceImpl implements PassagerService {
 
     private final PassagerRepository passagerRepository;
     private final PassagerMapper passagerMapper;
+    private final PasswordEncoder passwordEncoder ;
 
     @Override
     public PassagerResponse save(PassagerRequest request) {
@@ -33,6 +35,7 @@ public class PassagerServiceImpl implements PassagerService {
 
         Passager passager = passagerMapper.toEntity(request);
         passager.setEmail(email);
+        passager.setPassword(passwordEncoder.encode(request.password()));
 
         Passager newPassager = passagerRepository.save(passager);
         log.info("Passager créé : id={}", newPassager.getId());
@@ -91,4 +94,8 @@ public class PassagerServiceImpl implements PassagerService {
     private String normaliserEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
     }
+
+    /*public void login(String password){
+        passwordEncoder.matches(password,encodedPassword)
+    }*/
 }
