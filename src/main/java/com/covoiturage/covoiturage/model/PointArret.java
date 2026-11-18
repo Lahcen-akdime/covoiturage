@@ -29,7 +29,7 @@ public class PointArret {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "trajet_id", nullable = false)
+    @JoinColumn(name = "trajet_id", nullable = false,referencedColumnName = "id")
     private Trajet trajet;
 
     @Column(nullable = false, length = 100)

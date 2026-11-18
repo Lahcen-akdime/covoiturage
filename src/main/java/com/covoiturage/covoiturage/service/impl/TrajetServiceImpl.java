@@ -13,6 +13,7 @@ import com.covoiturage.covoiturage.model.PointArret;
 import com.covoiturage.covoiturage.model.Trajet;
 import com.covoiturage.covoiturage.model.Vehicule;
 import com.covoiturage.covoiturage.repository.ConducteurRepository;
+import com.covoiturage.covoiturage.repository.ReservationRepository;
 import com.covoiturage.covoiturage.repository.TrajetRepository;
 import com.covoiturage.covoiturage.repository.VehiculeRepository;
 import com.covoiturage.covoiturage.service.TrajetService;
@@ -42,6 +43,8 @@ public class TrajetServiceImpl implements TrajetService {
     private final VehiculeRepository vehiculeRepository;
     private final TrajetMapper trajetMapper;
     private final Clock clock;
+
+    private final ReservationRepository reservationRepository;
 
     @Override
     @Transactional
@@ -148,6 +151,7 @@ public class TrajetServiceImpl implements TrajetService {
     }
 
     private int calculerPlacesRestantes(Trajet trajet) {
-        return trajet.getPlacesProposees();
+        return trajet.getPlacesProposees() - reservationRepository.placesOccupees(trajet.getId());
     }
+
 }
