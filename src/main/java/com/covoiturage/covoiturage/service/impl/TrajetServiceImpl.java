@@ -49,7 +49,7 @@ public class TrajetServiceImpl implements TrajetService {
     private final TrajetMapper trajetMapper;
     private final Clock clock;
 
-    private static final BigDecimal PRIX_MAX_PAR_DEFAUT = new BigDecimal("99999999.99");
+    private static final BigDecimal Limit_price = new BigDecimal("99999999.99");
 
     private final ReservationRepository reservationRepository;
 
@@ -95,44 +95,54 @@ public class TrajetServiceImpl implements TrajetService {
     @Override
     public TrajetDetailResponse consulterDetail(Long id) {
         Trajet trajet = trajetRepository.findDetailById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'identifiant " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("il y a pas de trajet avec id " + id));
         return trajetMapper.toDetail(trajet, calculerPlacesRestantes(trajet));
     }
 
     @Override
+
     public Page<Trajet> rechercher(String villeDepart, String villeArrivee, LocalDate date, Integer places, BigDecimal prixMax, int page, int taille) {
+
         if (villeDepart == null || villeDepart.isBlank() || villeArrivee == null || villeArrivee.isBlank()) {
-            throw new InvalidRequestException("Les villes de départ et d'arrivée sont obligatoires.");
+            throw new InvalidRequestException("les villes de depart et d'arrivee sont obligatoires");
         }
+
         String depart = villeDepart.trim();
         String arrivee = villeArrivee.trim();
+
         if (depart.equalsIgnoreCase(arrivee)) {
-            throw new InvalidRequestException("La ville de départ et la ville d'arrivée doivent être différentes.");
+            throw new InvalidRequestException("La ville de depart egal la ville arrivee");
         }
 
         int placesDemandees = (places == null) ? 1 : places;
+
         if (placesDemandees < 1) {
-            throw new InvalidRequestException("Le nombre de places recherchées doit être au moins 1.");
+            throw new InvalidRequestException("nombre de place recherches < 1 ");
         }
-        BigDecimal plafond = (prixMax == null) ? PRIX_MAX_PAR_DEFAUT : prixMax;
-        if (plafond.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InvalidRequestException("Le prix maximal ne peut pas être négatif.");
-        }
-        if (page < 0) {
-            throw new InvalidRequestException("Le numéro de page ne peut pas être négatif.");
-        }
-        if (taille < 1 || taille > 50) {
-            throw new InvalidRequestException("La taille de page doit être comprise entre 1 et 50.");
+
+        BigDecimal priceLimit = (prixMax == null) ? Limit_price : prixMax;
+
+        if (priceLimit.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InvalidRequestException("Le prix maximal < 0");
         }
 
         Page<Trajet> resultat = trajetRepository.rechercher(
-                depart, arrivee, date.atStartOfDay(), date.plusDays(1).atStartOfDay(),
-                placesDemandees, plafond, StatutTrajet.PUBLIE, StatutReservation.CONFIRMEE,
-                PageRequest.of(page, taille));
+                depart,
+                arrivee,
+                date.atStartOfDay(),
+                date.plusDays(1).atStartOfDay(),
+                placesDemandees,
+                priceLimit,
+                StatutTrajet.PUBLIE,
+                StatutReservation.CONFIRMEE,
+                PageRequest.of(page, taille)
+        );
 
-        log.info("Recherche {} -> {} le {} : {} résultat(s)", depart, arrivee, date, resultat.getTotalElements());
-        return resultat ;
+        log.info("depart et arrive {} = > {} le {} , resultat : {} résultat(s)", depart, arrivee, date, resultat.getTotalElements());
+
+        return resultat;
     }
+
 
     private void verifierPlaces(int placesProposees, Vehicule vehicule) {
         if (placesProposees > vehicule.getCapacite()) {

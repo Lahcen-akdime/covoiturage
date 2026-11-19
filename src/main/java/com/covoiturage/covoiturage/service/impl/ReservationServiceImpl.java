@@ -137,7 +137,7 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setStatut(StatutReservation.ANNULEE) ;
         reservationRepository.saveAndFlush(reservation) ;
 
-        if(trajet.getStatut() == StatutTrajet.COMPLET && calculateEmptyPlaces(trajet)==0){
+        if(trajet.getStatut() == StatutTrajet.COMPLET && calculateEmptyPlaces(trajet)!=0){
             trajet.setStatut(StatutTrajet.PUBLIE);
             trajetRepository.save(trajet) ;
             log.info("le trajet est publiee maintenant encore");

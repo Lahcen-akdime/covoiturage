@@ -44,8 +44,8 @@ public class ReservationController {
     }
 
     @GetMapping("/conducteurs/{conducteurId}/trajets/{trajetId}")
-    public List<ReservationResponse> getReservationsTrajet(@PathVariable Long conducteurId,
-                                                          @PathVariable Long trajetId) {
+    public List<ReservationResponse> getReservationsTrajetOfConducteur(@PathVariable Long conducteurId,
+                                                                        @PathVariable Long trajetId) {
         return reservationService.getReservationsTrajet(conducteurId, trajetId);
     }
 }

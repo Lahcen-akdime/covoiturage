@@ -20,9 +20,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reservation", indexes = {
-        @Index(name = "index_reservation_trajet_statut", columnList = "trajet_id, statut"),
-        @Index(name = "index_reservation_passager", columnList = "passager_id")
+@Table(name = "reservations", indexes = {
+        @Index(name = "index_statut", columnList = "statut"),
+        @Index(name = "index_passager_id", columnList = "passager_id")
 })
 @Getter
 @Setter
@@ -51,7 +51,6 @@ public class Reservation {
     @Column(name = "nombre_places", nullable = false)
     private int nombrePlaces;
 
-    /** Montant figé au moment de la réservation, à 2 décimales. */
     @Column(name = "montant_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal montantTotal;
 
