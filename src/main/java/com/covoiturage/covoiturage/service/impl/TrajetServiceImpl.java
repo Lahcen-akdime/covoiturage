@@ -1,5 +1,6 @@
 package com.covoiturage.covoiturage.service.impl;
 
+import com.covoiturage.covoiturage.dto.PageResponse;
 import com.covoiturage.covoiturage.dto.Trajet.PublierTrajetRequest;
 import com.covoiturage.covoiturage.dto.Trajet.TrajetDetailResponse;
 import com.covoiturage.covoiturage.dto.pointArret.PointArretRequest;
@@ -8,6 +9,7 @@ import com.covoiturage.covoiturage.exception.InvalidRequestException;
 import com.covoiturage.covoiturage.exception.ResourceNotFoundException;
 import com.covoiturage.covoiturage.mapper.Trajet.TrajetMapper;
 import com.covoiturage.covoiturage.model.Conducteur;
+import com.covoiturage.covoiturage.model.Enum.StatutReservation;
 import com.covoiturage.covoiturage.model.Enum.StatutTrajet;
 import com.covoiturage.covoiturage.model.PointArret;
 import com.covoiturage.covoiturage.model.Trajet;
@@ -19,12 +21,15 @@ import com.covoiturage.covoiturage.repository.VehiculeRepository;
 import com.covoiturage.covoiturage.service.TrajetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +48,8 @@ public class TrajetServiceImpl implements TrajetService {
     private final VehiculeRepository vehiculeRepository;
     private final TrajetMapper trajetMapper;
     private final Clock clock;
+
+    private static final BigDecimal PRIX_MAX_PAR_DEFAUT = new BigDecimal("99999999.99");
 
     private final ReservationRepository reservationRepository;
 
@@ -88,9 +95,43 @@ public class TrajetServiceImpl implements TrajetService {
     @Override
     public TrajetDetailResponse consulterDetail(Long id) {
         Trajet trajet = trajetRepository.findDetailById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Trajet introuvable avec l'identifiant " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'identifiant " + id));
         return trajetMapper.toDetail(trajet, calculerPlacesRestantes(trajet));
+    }
+
+    @Override
+    public Page<Trajet> rechercher(String villeDepart, String villeArrivee, LocalDate date, Integer places, BigDecimal prixMax, int page, int taille) {
+        if (villeDepart == null || villeDepart.isBlank() || villeArrivee == null || villeArrivee.isBlank()) {
+            throw new InvalidRequestException("Les villes de départ et d'arrivée sont obligatoires.");
+        }
+        String depart = villeDepart.trim();
+        String arrivee = villeArrivee.trim();
+        if (depart.equalsIgnoreCase(arrivee)) {
+            throw new InvalidRequestException("La ville de départ et la ville d'arrivée doivent être différentes.");
+        }
+
+        int placesDemandees = (places == null) ? 1 : places;
+        if (placesDemandees < 1) {
+            throw new InvalidRequestException("Le nombre de places recherchées doit être au moins 1.");
+        }
+        BigDecimal plafond = (prixMax == null) ? PRIX_MAX_PAR_DEFAUT : prixMax;
+        if (plafond.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InvalidRequestException("Le prix maximal ne peut pas être négatif.");
+        }
+        if (page < 0) {
+            throw new InvalidRequestException("Le numéro de page ne peut pas être négatif.");
+        }
+        if (taille < 1 || taille > 50) {
+            throw new InvalidRequestException("La taille de page doit être comprise entre 1 et 50.");
+        }
+
+        Page<Trajet> resultat = trajetRepository.rechercher(
+                depart, arrivee, date.atStartOfDay(), date.plusDays(1).atStartOfDay(),
+                placesDemandees, plafond, StatutTrajet.PUBLIE, StatutReservation.CONFIRMEE,
+                PageRequest.of(page, taille));
+
+        log.info("Recherche {} -> {} le {} : {} résultat(s)", depart, arrivee, date, resultat.getTotalElements());
+        return resultat ;
     }
 
     private void verifierPlaces(int placesProposees, Vehicule vehicule) {

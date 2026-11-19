@@ -12,6 +12,7 @@ import com.covoiturage.covoiturage.model.Enum.StatutTrajet;
 import com.covoiturage.covoiturage.model.Trajet;
 import com.covoiturage.covoiturage.model.Vehicule;
 import com.covoiturage.covoiturage.repository.ConducteurRepository;
+import com.covoiturage.covoiturage.repository.ReservationRepository;
 import com.covoiturage.covoiturage.repository.TrajetRepository;
 import com.covoiturage.covoiturage.repository.VehiculeRepository;
 import com.covoiturage.covoiturage.service.impl.TrajetServiceImpl;
@@ -51,6 +52,8 @@ class TrajetServiceImplTest {
     @Mock
     private ConducteurRepository conducteurRepository;
     @Mock
+    private ReservationRepository reservationRepository;
+    @Mock
     private VehiculeRepository vehiculeRepository;
     @Mock
     private TrajetMapper trajetMapper;
@@ -68,7 +71,8 @@ class TrajetServiceImplTest {
         Clock clock = Clock.fixed(MAINTENANT.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
         // Construction a la main : l'ordre des arguments suit celui des champs du service
         trajetService = new TrajetServiceImpl(
-                trajetRepository, conducteurRepository, vehiculeRepository, trajetMapper, clock);
+                trajetRepository,
+                conducteurRepository, vehiculeRepository, trajetMapper, clock,reservationRepository);
     }
 
     // ---------- methodes utilitaires (pas des tests) ----------
