@@ -1,6 +1,5 @@
 package com.covoiturage.covoiturage.service.impl;
 
-import com.covoiturage.covoiturage.dto.PageResponse;
 import com.covoiturage.covoiturage.dto.Trajet.PublierTrajetRequest;
 import com.covoiturage.covoiturage.dto.Trajet.TrajetDetailResponse;
 import com.covoiturage.covoiturage.dto.pointArret.PointArretRequest;
@@ -9,7 +8,6 @@ import com.covoiturage.covoiturage.exception.InvalidRequestException;
 import com.covoiturage.covoiturage.exception.ResourceNotFoundException;
 import com.covoiturage.covoiturage.mapper.Trajet.TrajetMapper;
 import com.covoiturage.covoiturage.model.Conducteur;
-import com.covoiturage.covoiturage.model.Enum.StatutReservation;
 import com.covoiturage.covoiturage.model.Enum.StatutTrajet;
 import com.covoiturage.covoiturage.model.PointArret;
 import com.covoiturage.covoiturage.model.Trajet;
@@ -19,10 +17,14 @@ import com.covoiturage.covoiturage.repository.ReservationRepository;
 import com.covoiturage.covoiturage.repository.TrajetRepository;
 import com.covoiturage.covoiturage.repository.VehiculeRepository;
 import com.covoiturage.covoiturage.service.TrajetService;
+import com.covoiturage.covoiturage.specification.TrajetSpecs;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -49,7 +50,7 @@ public class TrajetServiceImpl implements TrajetService {
     private final TrajetMapper trajetMapper;
     private final Clock clock;
 
-    private static final BigDecimal Limit_price = new BigDecimal("99999999.99");
+    private static final BigDecimal maxPriceByDefault = new BigDecimal("99999999.99");
 
     private final ReservationRepository reservationRepository;
 
@@ -102,7 +103,45 @@ public class TrajetServiceImpl implements TrajetService {
     @Override
     public Page<Trajet> rechercher(String villeDepart, String villeArrivee, LocalDate date, Integer places, BigDecimal prixMax, int page, int taille) {
 
-        return null ;
+        if(villeArrivee == null || villeArrivee.isBlank() || villeDepart == null || villeDepart.isBlank()){
+            throw new InvalidRequestException("l'un des villes et pas valide !") ;
+        }
+
+        if(date == null){
+            throw new InvalidRequestException("la date est null ! ") ;
+        }
+
+        String depart = villeDepart.trim() ;
+        String fin = villeArrivee.trim() ;
+
+        if(depart.equalsIgnoreCase(fin)){
+            throw new InvalidRequestException("La vile depart et arrive ce sont les meme !") ;
+        }
+
+        int placeDemandes = (places == null) ? 1 : places ;
+
+        if(placeDemandes < 1 ){
+            throw new InvalidRequestException("Le nombre des places est negatif") ;
+        }
+
+        BigDecimal priceLimit = (prixMax == null) ? maxPriceByDefault : prixMax ;
+
+        if(page < 0){
+            throw new InvalidRequestException("Le nombre de page est negatif ") ;
+        }
+
+        Specification<Trajet> specification = TrajetSpecs.searchCriteria(depart,fin,date,places,priceLimit) ;
+
+        Pageable pageable = PageRequest.of(page,taille, Sort.by("dateDepart").ascending().and(Sort.by("id").ascending())) ;
+
+        Page<Trajet> trajetPage = trajetRepository.findAll(specification,pageable) ;
+
+        log.info("le recherche des trajets et passe , resultat : {}",trajetPage) ;
+
+        if(trajetPage.isEmpty()){
+            throw new InvalidRequestException("Not found") ;
+        }
+       return trajetPage ;
     }
 
 

@@ -26,6 +26,7 @@ public class TrajetSpecs {
 
     public static Specification<Trajet> searchCriteria(String villeDepart , String villeArrive ,
                                               LocalDate date , int nombreDesPlaces , BigDecimal prixMax){
+
         return ((root , query , cb) -> {
             // new predicates array list
             List<Predicate> predicates = new ArrayList<>() ;
@@ -60,8 +61,8 @@ public class TrajetSpecs {
 
             // met le trajet dans l'intervale de debut et fin ( date_depart graterThanOrEqualTo debut , etl'nverse pour fin )
 
-            predicates.add(cb.greaterThanOrEqualTo(root.<LocalDateTime>get("date_depart"),debut)) ;
-            predicates.add(cb.lessThan(root.<LocalDateTime>get("date_depart"),fin)) ;
+            predicates.add(cb.greaterThanOrEqualTo(root.<LocalDateTime>get("dateDepart"),debut)) ;
+            predicates.add(cb.lessThan(root.<LocalDateTime>get("dateDepart"),fin)) ;
 
             // verifier que la diff entre "prixDupuisDepart" de descente et de montee et lessOrEqualTo prixMax de paramétre
 
@@ -81,11 +82,11 @@ public class TrajetSpecs {
                                     cb.equal(reservationRoot.get("statut"),StatutReservation.CONFIRMEE)) ;
 
             // ajouter la condition finale ,
-            // la defference entre placeProposes de root principale ,
+            // la defference entre placesProposees de root principale ,
             // et ocoupe des reservation
             // et nombreDesPlaces
             // tous doit etre le
-            predicates.add(cb.le(ocoupees,cb.diff(root.get("placeProposes"),nombreDesPlaces))) ;
+            predicates.add(cb.le(ocoupees,cb.diff(root.get("placesProposees"),nombreDesPlaces))) ;
 
             // finalement retourner predicates.toArray(new Predicate[0])) ;
 

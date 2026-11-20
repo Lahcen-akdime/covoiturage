@@ -7,10 +7,8 @@ import com.covoiturage.covoiturage.model.Trajet;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
@@ -18,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface TrajetRepository extends JpaRepository<Trajet, Long> {
+public interface TrajetRepository extends JpaRepository<Trajet, Long> , JpaSpecificationExecutor<Trajet> {
 
     boolean existsByVehiculeId(Long vehiculeId);
 
@@ -77,7 +75,10 @@ public interface TrajetRepository extends JpaRepository<Trajet, Long> {
     """)
     List<Trajet> getConducteurAndPointDarretsByTrajets(List<Long> trajetsId) ;
 
-
-    //JpaSpecificationExecutor<Trajet>
-
+    @EntityGraph(attributePaths = {"conducteur", "pointsArret"})
+    @Override
+    Page<Trajet> findAll(
+            Specification<Trajet> spec,
+            Pageable pageable
+    );
 }

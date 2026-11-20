@@ -1,5 +1,6 @@
 package com.covoiturage.covoiturage.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -30,6 +31,7 @@ public class PointArret {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "trajet_id", nullable = false,referencedColumnName = "id")
+    @JsonBackReference
     private Trajet trajet;
 
     @Column(nullable = false, length = 100)
