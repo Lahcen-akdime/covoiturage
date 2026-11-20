@@ -100,48 +100,11 @@ public class TrajetServiceImpl implements TrajetService {
     }
 
     @Override
-
     public Page<Trajet> rechercher(String villeDepart, String villeArrivee, LocalDate date, Integer places, BigDecimal prixMax, int page, int taille) {
 
-        if (villeDepart == null || villeDepart.isBlank() || villeArrivee == null || villeArrivee.isBlank()) {
-            throw new InvalidRequestException("les villes de depart et d'arrivee sont obligatoires");
-        }
-
-        String depart = villeDepart.trim();
-        String arrivee = villeArrivee.trim();
-
-        if (depart.equalsIgnoreCase(arrivee)) {
-            throw new InvalidRequestException("La ville de depart egal la ville arrivee");
-        }
-
-        int placesDemandees = (places == null) ? 1 : places;
-
-        if (placesDemandees < 1) {
-            throw new InvalidRequestException("nombre de place recherches < 1 ");
-        }
-
-        BigDecimal priceLimit = (prixMax == null) ? Limit_price : prixMax;
-
-        if (priceLimit.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InvalidRequestException("Le prix maximal < 0");
-        }
-
-        Page<Trajet> resultat = trajetRepository.rechercher(
-                depart,
-                arrivee,
-                date.atStartOfDay(),
-                date.plusDays(1).atStartOfDay(),
-                placesDemandees,
-                priceLimit,
-                StatutTrajet.PUBLIE,
-                StatutReservation.CONFIRMEE,
-                PageRequest.of(page, taille)
-        );
-
-        log.info("depart et arrive {} = > {} le {} , resultat : {} résultat(s)", depart, arrivee, date, resultat.getTotalElements());
-
-        return resultat;
+        return null ;
     }
+
 
 
     private void verifierPlaces(int placesProposees, Vehicule vehicule) {
@@ -206,3 +169,50 @@ public class TrajetServiceImpl implements TrajetService {
     }
 
 }
+
+
+
+
+
+
+    /*public Page<Trajet> rechercher(String villeDepart, String villeArrivee, LocalDate date, Integer places, BigDecimal prixMax, int page, int taille) {
+
+        if (villeDepart == null || villeDepart.isBlank() || villeArrivee == null || villeArrivee.isBlank()) {
+            throw new InvalidRequestException("les villes de depart et d'arrivee sont obligatoires");
+        }
+
+        String depart = villeDepart.trim();
+        String arrivee = villeArrivee.trim();
+
+        if (depart.equalsIgnoreCase(arrivee)) {
+            throw new InvalidRequestException("La ville de depart egal la ville arrivee");
+        }
+
+        int placesDemandees = (places == null) ? 1 : places;
+
+        if (placesDemandees < 1) {
+            throw new InvalidRequestException("nombre de place recherches < 1 ");
+        }
+
+        BigDecimal priceLimit = (prixMax == null) ? Limit_price : prixMax;
+
+        if (priceLimit.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InvalidRequestException("Le prix maximal < 0");
+        }
+
+        Page<Trajet> resultat = trajetRepository.rechercher(
+                depart,
+                arrivee,
+                date.atStartOfDay(),
+                date.plusDays(1).atStartOfDay(),
+                placesDemandees,
+                priceLimit,
+                StatutTrajet.PUBLIE,
+                StatutReservation.CONFIRMEE,
+                PageRequest.of(page, taille)
+        );
+
+        log.info("depart et arrive {} = > {} le {} , resultat : {} résultat(s)", depart, arrivee, date, resultat.getTotalElements());
+
+        return resultat;
+    }*/

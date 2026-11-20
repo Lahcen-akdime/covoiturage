@@ -1,5 +1,6 @@
 package com.covoiturage.covoiturage.repository;
 
+import com.covoiturage.covoiturage.dto.Trajet.PlacesReservedOfTrajet;
 import com.covoiturage.covoiturage.model.Enum.StatutReservation;
 import com.covoiturage.covoiturage.model.Reservation;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -45,4 +46,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             order by r.dateReservation asc, r.id asc
             """)
     List<Reservation> findParTrajet(@Param("trajetId") Long trajetId);
+
+
+    @Query("""
+    SELECT r.trajet.id as trajetId , sum(r.nombrePlaces) as places 
+        from Reservation r 
+            where r.trajet.id in :ids and r.statut = :status
+                group by r.trajet.id
+        """)
+    List<PlacesReservedOfTrajet> getListReservationWhereIdIn(@Param("ids") List<Long> ids , @Param("status") StatutReservation status ) ;
+
+
+
 }

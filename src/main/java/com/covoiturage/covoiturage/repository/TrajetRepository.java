@@ -8,12 +8,14 @@ import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface TrajetRepository extends JpaRepository<Trajet, Long> {
@@ -66,5 +68,16 @@ public interface TrajetRepository extends JpaRepository<Trajet, Long> {
             @Param("statutReservation") StatutReservation statutReservation,
             Pageable pageable
     );
+
+    @Query("""
+    SELECT distinct t FROM Trajet t
+        JOIN FETCH t.conducteur
+            left join fetch t.pointsArret
+               where t.id in :trajetsId
+    """)
+    List<Trajet> getConducteurAndPointDarretsByTrajets(List<Long> trajetsId) ;
+
+
+    //JpaSpecificationExecutor<Trajet>
 
 }
