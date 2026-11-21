@@ -56,12 +56,12 @@ class ConducteurServiceImplTest {
     @Test
     @DisplayName("cree le conducteur : email normalise, permis nettoye, mot de passe encode")
     void save_cas_normal() {
-        ConducteurRequest request = requete("  Hamid@Mail.COM ", " AB123 ", "secret");
+        ConducteurRequest request = requete("  Elhoucine@Mail.COM ", " AB123 ", "secret");
         Conducteur entite = mock(Conducteur.class);
         Conducteur enregistre = mock(Conducteur.class);
         ConducteurResponse reponse = mock(ConducteurResponse.class);
 
-        when(conducteurRepository.existsByEmailIgnoreCase("hamid@mail.com")).thenReturn(false);
+        when(conducteurRepository.existsByEmailIgnoreCase("elhoucine@mail.com")).thenReturn(false);
         when(conducteurRepository.existsByNumeroPermis("AB123")).thenReturn(false);
         when(conducteurMapper.toEntity(request)).thenReturn(entite);
         when(passwordEncoder.encode("secret")).thenReturn("hash");
@@ -71,7 +71,7 @@ class ConducteurServiceImplTest {
         ConducteurResponse resultat = conducteurService.save(request);
 
         assertThat(resultat).isSameAs(reponse);
-        verify(entite).setEmail("hamid@mail.com");
+        verify(entite).setEmail("elhoucine@mail.com");
         verify(entite).setNumeroPermis("AB123");
         verify(entite).setPassword("hash");
         verify(conducteurRepository).save(entite);
@@ -80,12 +80,12 @@ class ConducteurServiceImplTest {
     @Test
     @DisplayName("refuse si l'email existe deja")
     void save_email_existant() {
-        ConducteurRequest request = requete("hamid@mail.com", "AB123", "secret");
-        when(conducteurRepository.existsByEmailIgnoreCase("hamid@mail.com")).thenReturn(true);
+        ConducteurRequest request = requete("elhoucine@mail.com", "AB123", "secret");
+        when(conducteurRepository.existsByEmailIgnoreCase("elhoucine@mail.com")).thenReturn(true);
 
         assertThatThrownBy(() -> conducteurService.save(request))
                 .isInstanceOf(BusinessRuleException.class)
-                .hasMessageContaining("hamid@mail.com");
+                .hasMessageContaining("elhoucine@mail.com");
 
         verify(conducteurRepository, never()).save(any());
     }
@@ -93,8 +93,8 @@ class ConducteurServiceImplTest {
     @Test
     @DisplayName("refuse si le numero de permis existe deja")
     void save_permis_existant() {
-        ConducteurRequest request = requete("hamid@mail.com", "AB123", "secret");
-        when(conducteurRepository.existsByEmailIgnoreCase("hamid@mail.com")).thenReturn(false);
+        ConducteurRequest request = requete("elhoucine@mail.com", "AB123", "secret");
+        when(conducteurRepository.existsByEmailIgnoreCase("elhoucine@mail.com")).thenReturn(false);
         when(conducteurRepository.existsByNumeroPermis("AB123")).thenReturn(true);
 
         assertThatThrownBy(() -> conducteurService.save(request))
@@ -203,20 +203,19 @@ class ConducteurServiceImplTest {
         Conducteur conducteur = mock(Conducteur.class);
         ConducteurResponse reponse = mock(ConducteurResponse.class);
 
-        when(conducteurRepository.rechercherParNomOuEmail("hamid")).thenReturn(List.of(conducteur));
+        when(conducteurRepository.rechercherParNomOuEmail("elhoucine")).thenReturn(List.of(conducteur));
         when(conducteurMapper.toResponse(conducteur)).thenReturn(reponse);
 
-        List<ConducteurResponse> resultat = conducteurService.searchByNameOrEmail("  hamid  ");
+        List<ConducteurResponse> resultat = conducteurService.searchByNameOrEmail("elhoucine");
 
         assertThat(resultat).containsExactly(reponse);
-        verify(conducteurRepository).rechercherParNomOuEmail("hamid");
+        verify(conducteurRepository).rechercherParNomOuEmail("elhoucine");
     }
 
     @Test
     @DisplayName("searchByNameOrEmail retourne une liste vide si rien ne correspond")
     void search_aucun_resultat() {
         when(conducteurRepository.rechercherParNomOuEmail("inconnu")).thenReturn(List.of());
-
         assertThat(conducteurService.searchByNameOrEmail("inconnu")).isEmpty();
     }
 

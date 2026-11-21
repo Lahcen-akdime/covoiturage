@@ -16,9 +16,9 @@ public record PointArretRequest(
         @NotNull(message = "L'heure de passage est obligatoire")
         LocalTime heurePassage,
 
-        @NotNull(message = "Le prix depuis le départ est obligatoire")
+        @NotNull(message = "Le prix depuis le depart est obligatoire")
         @DecimalMin(value = "0.00", message = "Le prix ne peut pas etre negatif")
-        @Digits(integer = 8, fraction = 2, message = "Le prix doit avoir au maximum 2 décimales")
+        @Digits(integer = 8, fraction = 2, message = "Le prix doit avoir au maximum 2 decimales")
         BigDecimal prixDepuisDepart
 ) {
 }

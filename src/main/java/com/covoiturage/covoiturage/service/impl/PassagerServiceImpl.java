@@ -38,7 +38,7 @@ public class PassagerServiceImpl implements PassagerService {
         passager.setPassword(passwordEncoder.encode(request.password()));
 
         Passager newPassager = passagerRepository.save(passager);
-        log.info("Passager créé : id={}", newPassager.getId());
+        log.info("Passager cree : id={}", newPassager.getId());
         return passagerMapper.toResponse(newPassager);
     }
 
@@ -79,16 +79,14 @@ public class PassagerServiceImpl implements PassagerService {
         passager.setEmail(email);
 
         Passager saved = passagerRepository.save(passager);
-        log.info("Passager modifié : id={}", saved.getId());
+        log.info("Passager modifie : id={}", saved.getId());
         return passagerMapper.toResponse(saved);
     }
 
     @Override
     public PassagerResponse searchByEmail(String email) {
         return passagerRepository.findByEmailIgnoreCase(normaliserEmail(email))
-                .map(passagerMapper::toResponse)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Aucun passager trouvé avec cet email"));
+                .map(passagerMapper::toResponse).orElseThrow(() -> new ResourceNotFoundException("Aucun passager trouvé avec cet email"));
     }
 
     private String normaliserEmail(String email) {

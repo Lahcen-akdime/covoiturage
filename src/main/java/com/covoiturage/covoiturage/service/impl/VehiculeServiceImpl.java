@@ -93,12 +93,12 @@ public class VehiculeServiceImpl implements VehiculeService {
         Vehicule vehicule = getVehiculeDuConducteur(conducteurId, vehiculeId);
 
         if (trajetRepository.existsByVehiculeId(vehiculeId)) {
-            throw new BusinessRuleException("Ce véhicule est associé à au moins un trajet : "
-                    + "il ne peut pas être supprimé.");
+            throw new BusinessRuleException("Ce vehicule est associe à au moins un trajet : "
+                    + "il ne peut pas etre supprime");
         }
 
         vehiculeRepository.delete(vehicule);
-        log.info("Véhicule supprimé : id={}, conducteurId={}", vehiculeId, conducteurId);
+        log.info("Vehicule supprimé : id={}, conducteurId={}", vehiculeId, conducteurId);
     }
 
     private Conducteur findConducteur(Long conducteurId) {
@@ -114,7 +114,7 @@ public class VehiculeServiceImpl implements VehiculeService {
     private Vehicule getVehiculeDuConducteur(Long conducteurId, Long vehiculeId) {
         Vehicule vehicule = vehiculeRepository.findById(vehiculeId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Véhicule introuvable avec l'identifiant " + vehiculeId));
+                        "Vehicule introuvable avec l'identifiant " + vehiculeId));
         if (!vehicule.getConducteur().getId().equals(conducteurId)) {
             throw new ForbiddenOperationException("Ce vehicule n'appartient pas au conducteur "
                     + conducteurId + ".");

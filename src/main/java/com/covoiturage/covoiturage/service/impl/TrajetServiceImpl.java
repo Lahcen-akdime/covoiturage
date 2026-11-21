@@ -59,13 +59,13 @@ public class TrajetServiceImpl implements TrajetService {
     public TrajetDetailResponse publier(Long conducteurId, PublierTrajetRequest request) {
         Conducteur conducteur = conducteurRepository.findById(conducteurId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Conducteur introuvable avec l'identifiant " + conducteurId));
+                        "Conducteur not found avec id " + conducteurId));
         Vehicule vehicule = vehiculeRepository.findById(request.vehiculeId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Véhicule introuvable avec l'identifiant " + request.vehiculeId()));
+                        "Vehicule not found avec id " + request.vehiculeId()));
 
         if (!vehicule.getConducteur().getId().equals(conducteurId)) {
-            throw new ForbiddenOperationException("Ce véhicule n'appartient pas au conducteur "
+            throw new ForbiddenOperationException("Ce vehicule n'appartient pas au conducteur "
                     + conducteurId + " : il ne peut pas l'utiliser pour publier un trajet.");
         }
 
@@ -88,7 +88,7 @@ public class TrajetServiceImpl implements TrajetService {
         };
 
         Trajet sauvegarde = trajetRepository.save(trajet);
-        log.info("Trajet publié : id={}, conducteurId={}, points={}",
+        log.info("Trajet publie : id={}, conducteurId={}, points={}",
                 sauvegarde.getId(), conducteurId, points.size());
         return trajetMapper.toDetail(sauvegarde, calculerPlacesRestantes(sauvegarde));
     }

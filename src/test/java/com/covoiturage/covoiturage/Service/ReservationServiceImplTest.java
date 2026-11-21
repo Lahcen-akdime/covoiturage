@@ -64,7 +64,7 @@ class ReservationServiceImplTest {
     // Horloge figee : maintenant vaut toujours la meme valeur
     private static final LocalDateTime MAINTENANT = LocalDateTime.of(2026, 11, 19, 16, 41);
     // Depart loin dans le futur : l'annulation est permise
-    private static final LocalDateTime DEPART_LOINTAIN = LocalDateTime.of(2026, 11, 25, 17, 0);
+    private static final LocalDateTime DATEDEPART = LocalDateTime.of(2026, 11, 25, 17, 0);
 
     @BeforeEach
     void init() {
@@ -75,7 +75,6 @@ class ReservationServiceImplTest {
                 trajetRepository, reservationMapper, clock);
     }
 
-    // ---------- methodes utilitaires (pas des tests) ----------
 
     // Fabrique un faux point d'arret
     private PointArret point(Long id, int ordre, String ville, String prix) {
@@ -87,10 +86,8 @@ class ReservationServiceImplTest {
         return p;
     }
 
-    // Fabrique un trajet avec le parcours Rabat, Casablanca, Settat, Marrakech (identifiants cent a cent trois)
     private Trajet trajet(StatutTrajet statut, LocalDateTime dateDepart) {
-        // Les points sont crees AVANT de commencer le stubbing du trajet :
-        // creer un mock (et le stubber) au milieu d'un when(...).thenReturn(...) casse Mockito
+
         List<PointArret> points = List.of(
                 point(100L, 0, "Rabat", "0"),
                 point(101L, 1, "Casablanca", "40"),
@@ -106,7 +103,6 @@ class ReservationServiceImplTest {
         return t;
     }
 
-    // Fabrique une fausse requete de reservation
     private ReserverRequest requete(Long montee, Long descente, int places) {
         ReserverRequest r = mock(ReserverRequest.class);
         lenient().when(r.trajetId()).thenReturn(7L);
@@ -116,17 +112,15 @@ class ReservationServiceImplTest {
         return r;
     }
 
-    // Prepare le passager un, le trajet sept et le nombre de places deja occupees
     private Trajet preparerReservation(StatutTrajet statut, int placesOccupees) {
         Passager passager = mock(Passager.class);
-        Trajet trajet = trajet(statut, DEPART_LOINTAIN);
+        Trajet trajet = trajet(statut, DATEDEPART);
         lenient().when(passagerRepository.findById(1L)).thenReturn(Optional.of(passager));
         lenient().when(trajetRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(trajet));
         lenient().when(reservationRepository.placesOccupees(7L)).thenReturn(placesOccupees);
         return trajet;
     }
 
-    // Fabrique une fausse reservation appartenant au passager donne
     private Reservation reservation(Long passagerId, StatutReservation statut, Trajet trajet) {
         Passager proprietaire = mock(Passager.class);
         lenient().when(proprietaire.getId()).thenReturn(passagerId);
@@ -137,13 +131,11 @@ class ReservationServiceImplTest {
         return r;
     }
 
-    // ---------- reserver : cas nominaux ----------
 
     @Test
     @DisplayName("reserver : une place sur une partie du trajet")
     void reserver_cas_nominal_reste_publie() {
-        // Principe : Salma reserve une place de Settat a Marrakech ; le montant est la difference des prix, soit cinquante,
-        // il reste deux places donc le trajet reste PUBLIE et n'est pas enregistre de nouveau
+
         Trajet trajet = preparerReservation(StatutTrajet.PUBLIE, 0);
         ReserverRequest request = requete(102L, 103L, 1);
         ReservationResponse reponse = mock(ReservationResponse.class);
@@ -153,7 +145,6 @@ class ReservationServiceImplTest {
 
         ReservationCreeeResponse resultat = reservationService.reserver(1L, request);
 
-        // Contenu de la reservation enregistree
         ArgumentCaptor<Reservation> captor = ArgumentCaptor.forClass(Reservation.class);
         verify(reservationRepository).saveAndFlush(captor.capture());
         Reservation enregistree = captor.getValue();
@@ -162,7 +153,6 @@ class ReservationServiceImplTest {
         assertThat(enregistree.getStatut()).isEqualTo(StatutReservation.CONFIRMEE);
         assertThat(enregistree.getDateReservation()).isEqualTo(MAINTENANT);
 
-        // Reponse : places restantes et statut du trajet
         assertThat(resultat).isEqualTo(new ReservationCreeeResponse(reponse, 2, StatutTrajet.PUBLIE));
         verify(trajetRepository, never()).save(any());
     }
@@ -170,8 +160,7 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("reserver : la derniere place rend le trajet complet")
     void reserver_derniere_place_trajet_complet() {
-        // Principe : une place est deja prise, Karim reserve deux places de Casablanca a Marrakech ;
-        // le montant vaut quatre vingt fois deux, soit cent soixante ; il ne reste plus de place donc le trajet passe a COMPLET
+
         Trajet trajet = preparerReservation(StatutTrajet.PUBLIE, 1);
         ReserverRequest request = requete(101L, 103L, 2);
         ReservationResponse reponse = mock(ReservationResponse.class);
@@ -190,7 +179,6 @@ class ReservationServiceImplTest {
         verify(trajetRepository).save(trajet);
     }
 
-    // ---------- reserver : cas d'erreur ----------
 
     @Test
     @DisplayName("reserver : passager inexistant")
@@ -236,7 +224,6 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("reserver : montee apres la descente")
     void reserver_montee_apres_descente() {
-        // Principe : monter a Marrakech et descendre a Settat va dans le mauvais sens, donc requete invalide
         preparerReservation(StatutTrajet.PUBLIE, 0);
         ReserverRequest request = requete(103L, 102L, 1);
 
@@ -263,7 +250,6 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("reserver : trajet termine")
     void reserver_trajet_termine() {
-        // Principe : seul un trajet PUBLIE est ouvert a la reservation ; un trajet TERMINE est refuse
         preparerReservation(StatutTrajet.TERMINE, 0);
         ReserverRequest request = requete(102L, 103L, 1);
 
@@ -276,7 +262,6 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("reserver : une seule reservation confirmee par trajet")
     void reserver_deja_une_reservation_confirmee() {
-        // Principe : le passager a deja une reservation CONFIRMEE sur ce trajet, donc refus
         preparerReservation(StatutTrajet.PUBLIE, 0);
         when(reservationRepository.existsByPassagerIdAndTrajetIdAndStatut(1L, 7L, StatutReservation.CONFIRMEE))
                 .thenReturn(true);
@@ -291,7 +276,6 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("reserver : pas assez de places restantes")
     void reserver_pas_assez_de_places() {
-        // Principe : le trajet propose trois places, deux sont occupees, il en reste une, mais le passager en demande deux
         preparerReservation(StatutTrajet.PUBLIE, 2);
         ReserverRequest request = requete(102L, 103L, 2);
 
@@ -302,14 +286,12 @@ class ReservationServiceImplTest {
         verify(reservationRepository, never()).saveAndFlush(any());
     }
 
-    // ---------- annuler ----------
 
     @Test
     @DisplayName("annuler : cas nominal")
     void annuler_cas_nominal() {
-        // Principe : le depart est dans plus de vingt quatre heures et la reservation appartient au passager ;
-        // elle passe a ANNULEE et le trajet n'etant pas complet n'est pas modifie
-        Trajet trajet = trajet(StatutTrajet.PUBLIE, DEPART_LOINTAIN);
+
+        Trajet trajet = trajet(StatutTrajet.PUBLIE, DATEDEPART);
         Reservation reservation = reservation(1L, StatutReservation.CONFIRMEE, trajet);
 
         when(passagerRepository.existsById(1L)).thenReturn(true);
@@ -326,9 +308,8 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("annuler : une place libere rend le trajet de nouveau publie")
     void annuler_trajet_complet_redevient_publie() {
-        // Principe : le trajet est COMPLET ; apres l'annulation il reste une place libre (deux occupees sur trois),
-        // donc le trajet repasse a PUBLIE et est enregistre
-        Trajet trajet = trajet(StatutTrajet.COMPLET, DEPART_LOINTAIN);
+
+        Trajet trajet = trajet(StatutTrajet.COMPLET, DATEDEPART);
         Reservation reservation = reservation(1L, StatutReservation.CONFIRMEE, trajet);
 
         when(passagerRepository.existsById(1L)).thenReturn(true);
@@ -345,7 +326,6 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("annuler : passager inexistant")
     void annuler_passager_introuvable() {
-        // Principe : le passager n'existe pas, donc erreur ressource introuvable
         when(passagerRepository.existsById(99L)).thenReturn(false);
 
         assertThatThrownBy(() -> reservationService.annuler(99L, 50L))
@@ -357,7 +337,6 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("annuler : reservation inexistante")
     void annuler_reservation_introuvable() {
-        // Principe : le passager existe mais la reservation demandee n'existe pas
         when(passagerRepository.existsById(1L)).thenReturn(true);
         when(reservationRepository.findById(50L)).thenReturn(Optional.empty());
 
@@ -369,8 +348,7 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("annuler : reservation d'un autre passager")
     void annuler_reservation_dun_autre_passager() {
-        // Principe : la reservation appartient au passager deux, mais le passager un essaie de l'annuler : operation interdite
-        Trajet trajet = trajet(StatutTrajet.PUBLIE, DEPART_LOINTAIN);
+        Trajet trajet = trajet(StatutTrajet.PUBLIE, DATEDEPART);
         Reservation reservation = reservation(2L, StatutReservation.CONFIRMEE, trajet);
 
         when(passagerRepository.existsById(1L)).thenReturn(true);
@@ -385,8 +363,7 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("annuler : trajet de la reservation introuvable")
     void annuler_trajet_introuvable() {
-        // Principe : la reservation existe mais son trajet est introuvable au moment du verrouillage
-        Trajet trajet = trajet(StatutTrajet.PUBLIE, DEPART_LOINTAIN);
+        Trajet trajet = trajet(StatutTrajet.PUBLIE, DATEDEPART);
         Reservation reservation = reservation(1L, StatutReservation.CONFIRMEE, trajet);
 
         when(passagerRepository.existsById(1L)).thenReturn(true);
@@ -402,8 +379,7 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("annuler : reservation deja annulee")
     void annuler_reservation_deja_annulee() {
-        // Principe : on ne peut pas annuler deux fois la meme reservation
-        Trajet trajet = trajet(StatutTrajet.PUBLIE, DEPART_LOINTAIN);
+        Trajet trajet = trajet(StatutTrajet.PUBLIE, DATEDEPART);
         Reservation reservation = reservation(1L, StatutReservation.ANNULEE, trajet);
 
         when(passagerRepository.existsById(1L)).thenReturn(true);
@@ -420,7 +396,6 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("annuler : delai de vingt quatre heures depasse")
     void annuler_trop_tard() {
-        // Principe : le depart est dans deux heures seulement, le delai d'annulation est depasse, regle metier violee
         Trajet trajet = trajet(StatutTrajet.PUBLIE, MAINTENANT.plusHours(2));
         Reservation reservation = reservation(1L, StatutReservation.CONFIRMEE, trajet);
 
@@ -435,12 +410,10 @@ class ReservationServiceImplTest {
         verify(reservationRepository, never()).saveAndFlush(any());
     }
 
-    // ---------- getReservationsOfPassager ----------
 
     @Test
     @DisplayName("historique passager : cas nominal")
     void historique_passager_cas_nominal() {
-        // Principe : le passager existe, on renvoie son historique transforme en reponses
         Reservation r1 = mock(Reservation.class);
         Reservation r2 = mock(Reservation.class);
         ReservationResponse rep1 = mock(ReservationResponse.class);
@@ -457,7 +430,6 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("historique passager : passager inexistant")
     void historique_passager_introuvable() {
-        // Principe : si le passager n'existe pas, erreur au lieu d'une liste vide
         when(passagerRepository.existsById(99L)).thenReturn(false);
 
         assertThatThrownBy(() -> reservationService.getReservationsOfPassager(99L))
@@ -466,12 +438,10 @@ class ReservationServiceImplTest {
         verify(reservationRepository, never()).findHistoriqueParPassager(any());
     }
 
-    // ---------- getReservationsTrajet ----------
 
     @Test
     @DisplayName("reservations d'un trajet : cas nominal")
     void reservations_trajet_cas_nominal() {
-        // Principe : le conducteur est le proprietaire du trajet, il voit les reservations de ce trajet
         Conducteur conducteur = mock(Conducteur.class);
         when(conducteur.getId()).thenReturn(1L);
         Trajet trajet = mock(Trajet.class);
@@ -512,7 +482,6 @@ class ReservationServiceImplTest {
     @Test
     @DisplayName("reservations d'un trajet : trajet d'un autre conducteur")
     void reservations_trajet_dun_autre_conducteur() {
-        // Principe : le trajet appartient au conducteur deux, mais le conducteur un demande ses reservations : operation interdite
         Conducteur proprietaire = mock(Conducteur.class);
         when(proprietaire.getId()).thenReturn(2L);
         Trajet trajet = mock(Trajet.class);

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record PublierTrajetRequest(
-        @NotNull(message = "Le véhicule est obligatoire")
+        @NotNull(message = "Le vehicule est obligatoire")
         Long vehiculeId,
 
         @NotNull(message = "Le nombre de places proposees est obligatoire")

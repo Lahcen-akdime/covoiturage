@@ -90,7 +90,6 @@ class PassagerServiceImplTest {
             verify(passwordEncoder, never()).encode(any());
         }
 
-    // ---------- getById / findById ----------
 
     @Test
     @DisplayName("getById retourne le passager mappe")
@@ -123,7 +122,6 @@ class PassagerServiceImplTest {
         assertThat(passagerService.findById(1L)).isSameAs(passager);
     }
 
-    // ---------- getList ----------
 
     @Test
     @DisplayName("getList retourne tous les passagers mappes")

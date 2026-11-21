@@ -182,8 +182,7 @@ public class ReservationServiceImpl implements ReservationService {
     private PointArret findPoint(Trajet trajet, Long pointId) {
         return trajet.getPointsArret().stream()
                 .filter(p -> p.getId().equals(pointId))
-                .findFirst()
-                .orElseThrow(() -> new InvalidRequestException("ce point n'est pas du trajet " + trajet.getId()));
+                .findFirst().orElseThrow(() -> new InvalidRequestException("ce point n'est pas du trajet " + trajet.getId()));
     }
 
     private void verifyTrajetOpen(Trajet trajet) {

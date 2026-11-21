@@ -37,8 +37,7 @@ public class ConducteurServiceImpl implements ConducteurService {
             throw new BusinessRuleException("Un conducteur avec l'email " + email + " existe deja");
         }
         if (conducteurRepository.existsByNumeroPermis(numeroPermis)) {
-            throw new BusinessRuleException("Un conducteur avec le numéro de permis "
-                    + numeroPermis + " existe deja ");
+            throw new BusinessRuleException("Un conducteur avec le numero de permis " + numeroPermis + " existe deja ");
         }
 
         Conducteur conducteur = conducteurMapper.toEntity(request);
@@ -54,8 +53,7 @@ public class ConducteurServiceImpl implements ConducteurService {
     @Override
     public List<ConducteurResponse> getList() {
         return conducteurRepository.findAll().stream()
-                .map(conducteurMapper::toResponse)
-                .toList();
+                .map(conducteurMapper::toResponse).toList();
     }
 
     @Override
@@ -66,11 +64,10 @@ public class ConducteurServiceImpl implements ConducteurService {
         String numeroPermis = request.numeroPermis().trim();
 
         if (conducteurRepository.existsByEmailIgnoreCaseAndIdNot(email, id)) {
-            throw new BusinessRuleException("Un autre conducteur utilise déjà l'email " + email + ".");
+            throw new BusinessRuleException("Un autre conducteur utilise dejà l'email " + email);
         }
         if (conducteurRepository.existsByNumeroPermisAndIdNot(numeroPermis, id)) {
-            throw new BusinessRuleException("Un autre conducteur utilise déjà le numéro de permis "
-                    + numeroPermis + ".");
+            throw new BusinessRuleException("Un autre conducteur utilise dejà le numero de permis " + numeroPermis);
         }
 
         conducteurMapper.updateEntity(request, conducteur);
@@ -96,9 +93,7 @@ public class ConducteurServiceImpl implements ConducteurService {
 
 
     public Conducteur findById(Long id) {
-        return conducteurRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Conducteur introuvable avec l'identifiant " + id));
+        return conducteurRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Conducteur introuvable avec l'identifiant " + id));
     }
 
 

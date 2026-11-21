@@ -8,24 +8,24 @@ import jakarta.validation.constraints.Size;
 
 public record VehiculeRequest(
         @NotBlank(message = "La marque est obligatoire")
-        @Size(max = 50, message = "La marque ne doit pas dépasser 50 caractères")
+        @Size(max = 50, message = "La marque est 50 chifre au max")
         String marque,
 
-        @NotBlank(message = "Le modèle est obligatoire")
-        @Size(max = 50, message = "Le modèle ne doit pas dépasser 50 caractères")
+        @NotBlank(message = "Le modele obligatoire")
+        @Size(max = 50, message = "Le modele est 50 caracteres au max")
         String modele,
 
-        @NotBlank(message = "L'immatriculation est obligatoire")
-        @Size(max = 20, message = "L'immatriculation ne doit pas dépasser 20 caractères")
+        @NotBlank(message = "matricule nessaissaire")
+        @Size(max = 20, message = "L'immatriculation 20 chiffre au max")
         String matricule,
 
         @NotBlank(message = "La couleur est obligatoire")
-        @Size(max = 30, message = "La couleur ne doit pas dépasser 30 caractères")
+        @Size(max = 30, message = "La couleur est 30 chifres au max")
         String couleur,
 
-        @NotNull(message = "La capacité est obligatoire")
-        @Min(value = 1, message = "La capacité minimale est de 1 place")
-        @Max(value = 8, message = "La capacité maximale est de 8 places")
+        @NotNull(message = "La capacite est obligatoire")
+        @Min(value = 1, message = "La capacite minimale est de 1 place")
+        @Max(value = 8, message = "La capacite maximale est de 8 places")
         Integer capacite
 ) {
 }
