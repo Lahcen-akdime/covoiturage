@@ -80,7 +80,7 @@ public class TrajetServiceImpl implements TrajetService {
         trajet.setDateDepart(request.dateDepart());
         trajet.setPlacesProposees(request.placesProposees());
         trajet.setStatut(StatutTrajet.PUBLIE);
-        trajet.setVilleDepart(points.get(0).ville().trim());
+        trajet.setVilleDepart(points.get(0).ville().trim().toLowerCase(Locale.ROOT));
         trajet.setVilleArrivee(points.get(points.size() - 1).ville().trim());
 
         for (int i = 0; i < points.size() ; i++) {
@@ -111,8 +111,8 @@ public class TrajetServiceImpl implements TrajetService {
             throw new InvalidRequestException("la date est null ! ") ;
         }
 
-        String depart = villeDepart.trim() ;
-        String fin = villeArrivee.trim() ;
+        String depart = villeDepart.trim().toLowerCase(Locale.ROOT) ;
+        String fin = villeArrivee.trim().toLowerCase(Locale.ROOT) ;
 
         if(depart.equalsIgnoreCase(fin)){
             throw new InvalidRequestException("La vile depart et arrive ce sont les meme !") ;
@@ -130,7 +130,8 @@ public class TrajetServiceImpl implements TrajetService {
             throw new InvalidRequestException("Le nombre de page est negatif ") ;
         }
 
-        Specification<Trajet> specification = TrajetSpecs.searchCriteria(depart,fin,date,places,priceLimit) ;
+        Specification<Trajet> specification = TrajetSpecs.searchCriteria(depart,fin,date,placeDemandes,priceLimit) ;
+
 
         Pageable pageable = PageRequest.of(page,taille, Sort.by("dateDepart").ascending().and(Sort.by("id").ascending())) ;
 
@@ -138,9 +139,9 @@ public class TrajetServiceImpl implements TrajetService {
 
         log.info("le recherche des trajets et passe , resultat : {}",trajetPage) ;
 
-        if(trajetPage.isEmpty()){
-            throw new InvalidRequestException("Not found") ;
-        }
+        //if(trajetPage.isEmpty()){
+           // throw new InvalidRequestException("Not found") ;
+        //}
        return trajetPage ;
     }
 
@@ -195,7 +196,7 @@ public class TrajetServiceImpl implements TrajetService {
 
     private PointArret buildPoint(PointArretRequest source, int ordre) {
         PointArret point = PointArret.builder()
-        .ville(source.ville().trim())
+        .ville(source.ville().trim().toLowerCase(Locale.ROOT))
         .ordre(ordre)
         .heurePassage(source.heurePassage())
         .prixDepuisDepart(source.prixDepuisDepart().setScale(2, RoundingMode.HALF_UP))

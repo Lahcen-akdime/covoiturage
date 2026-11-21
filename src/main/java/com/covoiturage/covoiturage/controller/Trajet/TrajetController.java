@@ -37,11 +37,11 @@ public class TrajetController {
         return ResponseEntity.ok().body(trajetService.consulterDetail(id));
     }
 
-    @GetMapping("/trajets/recherche")
+    @GetMapping("/recherche")
     public Page<Trajet> rechercher(
             @RequestParam String villeDepart,
             @RequestParam String villeArrivee,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam LocalDate date,
             @RequestParam(required = false) Integer places,
             @RequestParam(required = false) BigDecimal prixMax,
             @RequestParam(defaultValue = "0") int page,

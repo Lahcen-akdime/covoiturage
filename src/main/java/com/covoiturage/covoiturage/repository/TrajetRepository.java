@@ -67,18 +67,7 @@ public interface TrajetRepository extends JpaRepository<Trajet, Long> , JpaSpeci
             Pageable pageable
     );
 
-    @Query("""
-    SELECT distinct t FROM Trajet t
-        JOIN FETCH t.conducteur
-            left join fetch t.pointsArret
-               where t.id in :trajetsId
-    """)
-    List<Trajet> getConducteurAndPointDarretsByTrajets(List<Long> trajetsId) ;
-
-    @EntityGraph(attributePaths = {"conducteur", "pointsArret"})
+    @EntityGraph(attributePaths = {"conducteur", "vehicule", "pointsArret"})
     @Override
-    Page<Trajet> findAll(
-            Specification<Trajet> spec,
-            Pageable pageable
-    );
+    Page<Trajet> findAll(Specification<Trajet> spec, Pageable pageable);
 }

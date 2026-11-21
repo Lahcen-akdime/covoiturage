@@ -39,30 +39,24 @@ public class TrajetSpecs {
             Join<Trajet , PointArret> descente = root.join("pointsArret") ;
 
             // declarer l'intervale de la date de paramétre en debut et fin
-
             LocalDateTime debut = date.atStartOfDay() ;
-            LocalDateTime fin = date.plusDays(1).atStartOfDay() ;
+            LocalDateTime fin = date.plusDays(2).atStartOfDay() ;
 
             // ajouter la condition de statut qui doit etre publie
-
-            predicates.add(cb.equal(root.get("statut"),StatutTrajet.PUBLIE)) ;
+            predicates.add(cb.equal(root.get("statut"),StatutTrajet.PUBLIE.name())) ;
 
             // ajouter la condition de la ville de montee doit etre la meme que la ville depart
-
-            predicates.add(cb.equal(montee.get("ville"),villeDepart.trim().toLowerCase(Locale.ROOT))) ;
+            predicates.add(cb.equal(cb.lower(montee.get("ville")), villeDepart.trim().toLowerCase(Locale.ROOT)));
 
             // ajouter la condition de ville descentr egal au ville de parametre
-
-            predicates.add(cb.equal(descente.get("ville"),villeArrive.trim().toLowerCase(Locale.ROOT))) ;
+            predicates.add(cb.equal(cb.lower(descente.get("ville")), villeArrive.trim().toLowerCase(Locale.ROOT)));
 
             // verifier que l'ordre de monte et moins l'ordre de descente
-
             predicates.add(cb.lessThan(montee.<Integer>get("ordre"),descente.<Integer>get("ordre"))) ;
 
             // met le trajet dans l'intervale de debut et fin ( date_depart graterThanOrEqualTo debut , etl'nverse pour fin )
-
             predicates.add(cb.greaterThanOrEqualTo(root.<LocalDateTime>get("dateDepart"),debut)) ;
-            predicates.add(cb.lessThan(root.<LocalDateTime>get("dateDepart"),fin)) ;
+            predicates.add(cb.lessThanOrEqualTo(root.<LocalDateTime>get("dateDepart"),fin)) ;
 
             // verifier que la diff entre "prixDupuisDepart" de descente et de montee et lessOrEqualTo prixMax de paramétre
 
