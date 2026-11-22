@@ -57,7 +57,6 @@ public class Trajet {
     private StatutTrajet statut;
 
     @OneToMany(mappedBy = "trajet", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
     private List<PointArret> pointsArret = new ArrayList<>();
 
     public void ajouterPointArret(PointArret point) {

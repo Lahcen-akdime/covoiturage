@@ -1,7 +1,7 @@
 package com.covoiturage.covoiturage.mapper.Trajet;
 
 import com.covoiturage.covoiturage.dto.Trajet.TrajetDetailResponse;
-import com.covoiturage.covoiturage.dto.Trajet.TrajetRechercheResponse;
+import com.covoiturage.covoiturage.dto.Trajet.TrajetResponse;
 import com.covoiturage.covoiturage.dto.conducteur.ConducteurResume;
 import com.covoiturage.covoiturage.dto.pointArret.PointArretResponse;
 import com.covoiturage.covoiturage.mapper.Vehicule.VehiculeMapper;
@@ -22,6 +22,9 @@ public interface TrajetMapper {
 
     PointArretResponse toPointResponse(PointArret pointArret);
 
-    //Page<TrajetRechercheResponse> toTrajetRechercheResponse(Page<Trajet> page) ;
+    @Mapping(source = "conducteur.nom", target = "conducteurNom")
+    TrajetResponse toResponse(Trajet trajet);
+
+
 
 }

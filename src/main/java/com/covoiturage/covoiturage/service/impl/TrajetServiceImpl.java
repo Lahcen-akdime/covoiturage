@@ -2,6 +2,7 @@ package com.covoiturage.covoiturage.service.impl;
 
 import com.covoiturage.covoiturage.dto.Trajet.PublierTrajetRequest;
 import com.covoiturage.covoiturage.dto.Trajet.TrajetDetailResponse;
+import com.covoiturage.covoiturage.dto.Trajet.TrajetResponse;
 import com.covoiturage.covoiturage.dto.pointArret.PointArretRequest;
 import com.covoiturage.covoiturage.exception.ForbiddenOperationException;
 import com.covoiturage.covoiturage.exception.InvalidRequestException;
@@ -50,7 +51,7 @@ public class TrajetServiceImpl implements TrajetService {
     private final TrajetMapper trajetMapper;
     private final Clock clock;
 
-    private static final BigDecimal maxPriceByDefault = new BigDecimal("99999999.99");
+    private static final BigDecimal maxPriceByDefault = new BigDecimal("1000.00");
 
     private final ReservationRepository reservationRepository;
 
@@ -101,7 +102,7 @@ public class TrajetServiceImpl implements TrajetService {
     }
 
     @Override
-    public Page<Trajet> rechercher(String villeDepart, String villeArrivee, LocalDate date, Integer places, BigDecimal prixMax, int page, int taille) {
+    public Page<TrajetResponse> rechercher(String villeDepart, String villeArrivee, LocalDate date, Integer places, BigDecimal prixMax, int page, int taille) {
 
         if(villeArrivee == null || villeArrivee.isBlank() || villeDepart == null || villeDepart.isBlank()){
             throw new InvalidRequestException("l'un des villes et pas valide !") ;
@@ -135,14 +136,14 @@ public class TrajetServiceImpl implements TrajetService {
 
         Pageable pageable = PageRequest.of(page,taille, Sort.by("dateDepart").ascending().and(Sort.by("id").ascending())) ;
 
-        Page<Trajet> trajetPage = trajetRepository.findAll(specification,pageable) ;
+        Page<Trajet> trajetPage = trajetRepository.findAll(specification,pageable);
 
         log.info("le recherche des trajets et passe , resultat : {}",trajetPage) ;
 
         //if(trajetPage.isEmpty()){
            // throw new InvalidRequestException("Not found") ;
         //}
-       return trajetPage ;
+       return trajetPage.map(trajetMapper::toResponse) ;
     }
 
 

@@ -1,6 +1,5 @@
 package com.covoiturage.covoiturage.repository;
 
-import com.covoiturage.covoiturage.dto.Trajet.TrajetRechercheResponse;
 import com.covoiturage.covoiturage.model.Enum.StatutReservation;
 import com.covoiturage.covoiturage.model.Enum.StatutTrajet;
 import com.covoiturage.covoiturage.model.Trajet;

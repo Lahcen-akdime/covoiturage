@@ -2,6 +2,7 @@ package com.covoiturage.covoiturage.controller.Trajet;
 
 import com.covoiturage.covoiturage.dto.Trajet.PublierTrajetRequest;
 import com.covoiturage.covoiturage.dto.Trajet.TrajetDetailResponse;
+import com.covoiturage.covoiturage.dto.Trajet.TrajetResponse;
 import com.covoiturage.covoiturage.model.Trajet;
 import com.covoiturage.covoiturage.service.TrajetService;
 import jakarta.validation.Valid;
@@ -38,7 +39,7 @@ public class TrajetController {
     }
 
     @GetMapping("/recherche")
-    public Page<Trajet> rechercher(
+    public Page<TrajetResponse> rechercher(
             @RequestParam String villeDepart,
             @RequestParam String villeArrivee,
             @RequestParam LocalDate date,
